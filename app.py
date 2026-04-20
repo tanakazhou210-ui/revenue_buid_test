@@ -81,6 +81,76 @@ def generate_ai_response(df, question):
     return "Here are the key insights from your data:\n" + "\n".join(insights[:5])
 
 
+def generate_forecast_recommendations(actual, predicted, metrics):
+    recommendations = []
+
+    mape = metrics["MAPE"]
+
+    if mape < 10:
+        recommendations.append(
+            "✅ Excellent forecast accuracy (MAPE < 10%). Your model is performing very well."
+        )
+    elif mape < 20:
+        recommendations.append(
+            "✅ Good forecast accuracy (MAPE < 20%). Consider fine-tuning for better results."
+        )
+    elif mape < 30:
+        recommendations.append(
+            "⚠️ Moderate forecast accuracy (MAPE < 30%). Review data quality and consider feature engineering."
+        )
+    else:
+        recommendations.append(
+            "❌ Poor forecast accuracy (MAPE > 30%). Consider using additional variables or alternative models."
+        )
+
+    residuals = np.array(actual) - np.array(predicted)
+    mean_res = np.mean(residuals)
+
+    if mean_res > 0:
+        recommendations.append(
+            "📈 The model consistently under-forecasts. Consider adding a bias correction factor."
+        )
+    elif mean_res < 0:
+        recommendations.append(
+            "📉 The model consistently over-forecasts. Consider adjusting the baseline."
+        )
+
+    std_res = np.std(residuals)
+    if std_res > np.std(actual) * 0.2:
+        recommendations.append(
+            "⚠️ High variance in residuals. The model may be unstable for some periods."
+        )
+
+    positive_residuals = np.sum(residuals > 0)
+    negative_residuals = np.sum(residuals < 0)
+
+    if positive_residuals > negative_residuals * 1.5:
+        recommendations.append(
+            "📊 More under-forecasts detected. Revenue tends to be higher than predicted."
+        )
+    elif negative_residuals > positive_residuals * 1.5:
+        recommendations.append(
+            "📊 More over-forecasts detected. Revenue tends to be lower than predicted."
+        )
+
+    trend_col = None
+    for col in [actual.name, predicted.name]:
+        if col and "revenue" in col.lower():
+            trend_col = col
+
+    recommendations.append("\n📋 Recommendations:")
+    recommendations.append(
+        "1. Use the Chart Bot to visualize actual vs predicted trends"
+    )
+    recommendations.append("2. Consider adding seasonal adjustments to your model")
+    recommendations.append("3. Review periods with largest residuals for insights")
+    recommendations.append(
+        "4. Test alternative forecasting methods (moving average, exponential smoothing)"
+    )
+
+    return "\n".join(recommendations)
+
+
 def calculate_metrics(actual, predicted):
     actual = np.array(actual)
     predicted = np.array(predicted)
@@ -372,6 +442,12 @@ def main():
                     ax2.spines["right"].set_visible(False)
 
                     st.pyplot(fig_res)
+
+                    st.subheader("🤖 AI Recommendations")
+                    recommendations = generate_forecast_recommendations(
+                        actual, predicted, metrics
+                    )
+                    st.markdown(f"```\n{recommendations}\n```")
             else:
                 st.warning(
                     "Need at least 2 numeric columns for forecast testing (Actual and Predicted)."

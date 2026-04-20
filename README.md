@@ -22,9 +22,9 @@ An interactive Streamlit application for testing and validating revenue forecast
 - Multiple Y-axis support
 - Export charts as PNG
 
-### 🧪 Forecast Testing
+### 🧪 AI Forecast Testing
 - Calculate accuracy metrics (MAPE, MAE, RMSE)
-- Detect anomalies and outliers
+- AI-powered anomaly detection
 - Residual analysis visualization
 
 ## Installation
@@ -71,4 +71,4 @@ Date,Revenue,Forecast
 
 ## License
 
-MIT
+CAPSTONE / GREAT ZIMBABWE UNIVERSITY
